@@ -1,8 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Search, AlertCircle, Map } from 'lucide-react';
+import { Search, UserPlus, Map } from 'lucide-react';
 
-export const Hero = () => {
+export const Hero = ({ 
+  onReport,
+  onTrack 
+}: { 
+  onReport: () => void;
+  onTrack: () => void;
+}) => {
   return (
     <section className="min-h-screen pt-20 bg-gradient-to-b from-orange-500 to-orange-600 text-white">
       <div className="container mx-auto px-6 py-20">
@@ -22,17 +28,19 @@ export const Hero = () => {
           <div className="flex flex-col md:flex-row justify-center items-center gap-6 mb-16">
             <motion.button 
               whileHover={{ scale: 1.05 }}
+              onClick={onReport}
               className="flex items-center bg-white text-orange-600 px-8 py-4 rounded-lg font-bold text-lg"
             >
-              <AlertCircle className="mr-2" />
+              <UserPlus className="mr-2" />
               Report Missing Person
             </motion.button>
             <motion.button 
               whileHover={{ scale: 1.05 }}
+              onClick={onTrack}
               className="flex items-center bg-orange-700 text-white px-8 py-4 rounded-lg font-bold text-lg"
             >
               <Search className="mr-2" />
-              Search Database
+              Track Status
             </motion.button>
           </div>
 

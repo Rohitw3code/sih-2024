@@ -1,56 +1,116 @@
-import React from 'react';
-import { Menu, X, ScanFace, Bell } from 'lucide-react';
+import React, { useState } from 'react';
+import { Menu, X, ScanFace, Search, LogIn } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { NotificationCenter } from './admin/NotificationCenter';
 
-export const Header = () => {
-  const [isOpen, setIsOpen] = React.useState(false);
+const navLinkStyles = "hover:text-yellow-400 transition-colors text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-yellow-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center";
+const mobileNavLinkStyles = "px-4 py-2 hover:bg-orange-600 transition-colors text-sm font-medium rounded-lg";
+const buttonBaseStyles = "flex items-center px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 transform hover:scale-105";
+const secondaryButtonStyles = "bg-orange-600 text-white hover:bg-orange-700";
+const outlineButtonStyles = "border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-orange-900";
+const mobileSecondaryButtonStyles = "flex items-center justify-center w-full bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-orange-700 transition-colors";
+const mobileOutlineButtonStyles = "flex items-center justify-center w-full border-2 border-yellow-400 text-yellow-400 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-yellow-400 hover:text-orange-900 transition-colors";
+
+export const Header = ({ 
+  onTrack,
+  onAdminLogin
+}: { 
+  onTrack: () => void;
+  onAdminLogin: () => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="fixed w-full z-50 bg-gradient-to-r from-orange-800 via-orange-700 to-orange-800 text-white border-b-4 border-yellow-500">
-      <div className="container mx-auto px-4">
-        <nav className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-2">
+    <header className="fixed w-full z-50 bg-gradient-to-r from-orange-800 via-orange-700 to-orange-800 text-white border-b-4 border-yellow-500 shadow-lg">
+      <nav className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center space-x-2"
+          >
             <ScanFace className="h-8 w-8 text-yellow-400" />
             <div>
               <span className="text-xl font-bold">शिमहस्त</span>
               <span className="text-sm block text-yellow-400">Simhastha Tracker</span>
             </div>
-          </div>
+          </motion.div>
           
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="#dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</a>
-            <a href="#surveillance" className="hover:text-yellow-400 transition-colors">Surveillance</a>
-            <a href="#reports" className="hover:text-yellow-400 transition-colors">Reports</a>
-            <a href="#stations" className="hover:text-yellow-400 transition-colors">Stations</a>
-            <button className="flex items-center bg-yellow-500 text-orange-900 px-4 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition-colors">
-              <Bell className="w-4 h-4 mr-2" />
-              New Alert
-            </button>
+          <div className="hidden md:flex items-center space-x-6">
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center space-x-6"
+            >
+              <a href="#dashboard" className={navLinkStyles}>Dashboard</a>
+              <a href="#surveillance" className={navLinkStyles}>Surveillance</a>
+              <a href="#reports" className={navLinkStyles}>Reports</a>
+              <a href="#stations" className={navLinkStyles}>Stations</a>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center space-x-3"
+            >
+              <NotificationCenter />
+              <button 
+                onClick={onTrack}
+                className={`${buttonBaseStyles} ${secondaryButtonStyles}`}
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Track Case
+              </button>
+              <button 
+                onClick={onAdminLogin}
+                className={`${buttonBaseStyles} ${outlineButtonStyles}`}
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Admin Login
+              </button>
+            </motion.div>
           </div>
 
           <button 
-            className="md:hidden text-yellow-400"
+            className="md:hidden text-yellow-400 hover:text-yellow-300 transition-colors"
             onClick={() => setIsOpen(!isOpen)}
           >
-            {isOpen ? <X /> : <Menu />}
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
-        </nav>
+        </div>
 
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden border-t border-orange-600">
-            <div className="flex flex-col space-y-4 py-4">
-              <a href="#dashboard" className="hover:text-yellow-400 transition-colors px-4">Dashboard</a>
-              <a href="#surveillance" className="hover:text-yellow-400 transition-colors px-4">Surveillance</a>
-              <a href="#reports" className="hover:text-yellow-400 transition-colors px-4">Reports</a>
-              <a href="#stations" className="hover:text-yellow-400 transition-colors px-4">Stations</a>
-              <button className="flex items-center bg-yellow-500 text-orange-900 px-4 py-2 mx-4 rounded-lg font-semibold hover:bg-yellow-400 transition-colors">
-                <Bell className="w-4 h-4 mr-2" />
-                New Alert
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-orange-600 overflow-hidden"
+            >
+              <div className="flex flex-col space-y-3 py-4">
+                <a href="#dashboard" className={mobileNavLinkStyles}>Dashboard</a>
+                <a href="#surveillance" className={mobileNavLinkStyles}>Surveillance</a>
+                <a href="#reports" className={mobileNavLinkStyles}>Reports</a>
+                <a href="#stations" className={mobileNavLinkStyles}>Stations</a>
+                <button 
+                  onClick={onTrack}
+                  className={mobileSecondaryButtonStyles}
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Track Case
+                </button>
+                <button 
+                  onClick={onAdminLogin}
+                  className={mobileOutlineButtonStyles}
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Admin Login
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
     </header>
   );
 };

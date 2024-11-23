@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, Camera, MapPin, Clock, User, AlertCircle, Home, CheckCircle2, X } from 'lucide-react';
+import { ArrowLeft, Search, Camera, MapPin, Clock, User, AlertCircle, Home, CheckCircle2, X, Settings } from 'lucide-react';
 
 interface MatchedFace {
   id: string;
@@ -38,19 +38,35 @@ const dummyMatches: MatchedFace[] = [
   },
   {
     id: '4',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
-    location: 'Main Market',
-    timestamp: '2024-03-15 16:15',
-    confidence: 56,
-    cameraId: 'CAM_007'
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
+    location: 'Kalbhairav Temple',
+    timestamp: '2024-03-15 16:45',
+    confidence: 78,
+    cameraId: 'CAM_012'
   },
   {
     id: '5',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
-    location: 'Main Market',
-    timestamp: '2024-03-15 6:15',
+    image: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39',
+    location: 'Harsiddhi Temple',
+    timestamp: '2024-03-15 17:00',
+    confidence: 75,
+    cameraId: 'CAM_015'
+  },
+  {
+    id: '6',
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2',
+    location: 'Bus Station',
+    timestamp: '2024-03-15 17:30',
     confidence: 72,
-    cameraId: 'CAM_007'
+    cameraId: 'CAM_018'
+  },
+  {
+    id: '7',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d',
+    location: 'Railway Station',
+    timestamp: '2024-03-15 18:00',
+    confidence: 68,
+    cameraId: 'CAM_021'
   }
 ];
 
@@ -71,6 +87,9 @@ export const TrackingPage = ({ onBack }: { onBack: () => void }) => {
   const [showResults, setShowResults] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<MatchedFace | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confidenceThreshold, setConfidenceThreshold] = useState(70);
+  const [timeWindow, setTimeWindow] = useState(24);
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +100,8 @@ export const TrackingPage = ({ onBack }: { onBack: () => void }) => {
     setSelectedMatch(match);
     setShowConfirmDialog(true);
   };
+
+  const filteredMatches = dummyMatches.filter(match => match.confidence >= confidenceThreshold);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
@@ -95,14 +116,117 @@ export const TrackingPage = ({ onBack }: { onBack: () => void }) => {
               Back to Home
             </button>
             <h1 className="text-xl font-bold text-gray-800">Track Missing Person</h1>
-            <div className="w-20"></div>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Settings className="w-5 h-5 text-gray-600" />
+            </button>
           </div>
         </div>
       </nav>
 
       <div className="pt-20 pb-12 px-4">
         <AnimatePresence mode="wait">
-          {showResults ? (
+          {showSettings ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">Detection Settings</h2>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Confidence Threshold ({confidenceThreshold}%)
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={confidenceThreshold}
+                    onChange={(e) => setConfidenceThreshold(parseInt(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    Only show matches above this confidence level
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Time Window ({timeWindow} hours)
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="72"
+                    value={timeWindow}
+                    onChange={(e) => setTimeWindow(parseInt(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    Search for matches within this time period
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-medium text-gray-800 mb-2">Face Detection</h3>
+                    <div className="space-y-2">
+                      <label className="flex items-center">
+                        <input type="checkbox" defaultChecked className="mr-2" />
+                        <span className="text-sm">Enhanced Face Recognition</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" defaultChecked className="mr-2" />
+                        <span className="text-sm">Age Estimation</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" defaultChecked className="mr-2" />
+                        <span className="text-sm">Gender Detection</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-medium text-gray-800 mb-2">Search Area</h3>
+                    <div className="space-y-2">
+                      <label className="flex items-center">
+                        <input type="checkbox" defaultChecked className="mr-2" />
+                        <span className="text-sm">All Cameras</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" defaultChecked className="mr-2" />
+                        <span className="text-sm">High Traffic Areas</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" defaultChecked className="mr-2" />
+                        <span className="text-sm">Transport Hubs</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="w-full py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                >
+                  Apply Settings
+                </button>
+              </div>
+            </motion.div>
+          ) : showResults ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -111,17 +235,17 @@ export const TrackingPage = ({ onBack }: { onBack: () => void }) => {
             >
               <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                 <div className="p-6 bg-orange-50 border-b border-orange-100">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <h2 className="text-xl font-bold text-gray-800">Case Details: {dummyCase.id}</h2>
                     <span className="text-sm text-orange-600">Last updated: 5 minutes ago</span>
                   </div>
                 </div>
 
                 <div className="p-6">
-                  <div className="grid md:grid-cols-2 gap-8 h-[600px]">
-                    <div className="bg-gray-50 rounded-xl p-6 h-full">
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div className="bg-gray-50 rounded-xl p-6">
                       <h3 className="text-lg font-semibold mb-4">Person Information</h3>
-                      <div className="flex flex-col h-full">
+                      <div className="flex flex-col">
                         <div className="flex justify-center mb-6">
                           <motion.img
                             src={dummyCase.image}
@@ -142,10 +266,15 @@ export const TrackingPage = ({ onBack }: { onBack: () => void }) => {
                       </div>
                     </div>
 
-                    <div className="h-full">
-                      <h3 className="text-lg font-semibold mb-4">Potential Matches</h3>
-                      <div className="space-y-4 h-[calc(100%-2rem)] overflow-y-auto pr-2">
-                        {dummyMatches.map((match) => (
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">Potential Matches</h3>
+                        <span className="text-sm text-gray-600">
+                          Showing matches above {confidenceThreshold}% confidence
+                        </span>
+                      </div>
+                      <div className="h-[600px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+                        {filteredMatches.map((match) => (
                           <motion.div
                             key={match.id}
                             initial={{ opacity: 0, x: 20 }}

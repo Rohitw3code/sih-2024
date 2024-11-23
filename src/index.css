@@ -63,3 +63,18 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-orange-600;
 }
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .custom-scrollbar {
+    scrollbar-width: none;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .sidebar-mobile-hidden {
+    @apply -translate-x-full;
+  }
+}

@@ -1,41 +1,90 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Upload, Save, ArrowLeft, CheckCircle2, Camera, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Upload, Save, ArrowLeft, CheckCircle2, Camera, AlertCircle, Loader2, Home } from 'lucide-react';
+import * as blazeface from '@tensorflow-models/blazeface';
+import * as tf from '@tensorflow/tfjs';
 
 export const ReportForm = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    age: '',
+    name: 'Rishabh Kumar',
+    age: '25',
     gender: 'male',
-    complexion: '',
-    lastSeenTime: '',
-    lastSeenLocation: '',
-    description: '',
-    contactNumber: '',
+    complexion: 'Medium',
+    lastSeenTime: '2024-03-15T14:30',
+    lastSeenLocation: 'ram_ghat',
+    description: 'Last seen wearing orange kurta and white dhoti',
+    contactNumber: '9876543210',
     photo: null as File | null
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [reportNumber, setReportNumber] = useState('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isFaceDetected, setIsFaceDetected] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [model, setModel] = useState<any>(null);
+
+  useEffect(() => {
+    const loadModel = async () => {
+      await tf.ready();
+      const loadedModel = await blazeface.load();
+      setModel(loadedModel);
+    };
+    loadModel();
+  }, []);
+
+  const detectFace = async (imageUrl: string) => {
+    if (!model) return false;
+    
+    setIsProcessing(true);
+    try {
+      const img = new Image();
+      img.src = imageUrl;
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+
+      const tensor = tf.browser.fromPixels(img);
+      const predictions = await model.estimateFaces(tensor, false);
+      tensor.dispose();
+
+      return predictions.length > 0;
+    } catch (error) {
+      console.error('Face detection error:', error);
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData({ ...formData, photo: file });
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const imageUrl = reader.result as string;
+        setPreviewImage(imageUrl);
+        const hasFace = await detectFace(imageUrl);
+        setIsFaceDetected(hasFace);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFaceDetected) {
+      alert('Please upload a clear photo with a visible face');
+      return;
+    }
     const generatedReportNumber = 'MP' + Math.random().toString(36).substr(2, 8).toUpperCase();
     setReportNumber(generatedReportNumber);
     setIsSubmitted(true);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData({ ...formData, photo: file });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleNavigateHome = () => {
+    window.location.href = '/';
   };
 
   if (isSubmitted) {
@@ -96,22 +145,24 @@ export const ReportForm = () => {
               </motion.div>
 
               <div className="flex gap-4 justify-center">
-                <motion.a 
-                  href="/"
-                  className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors"
+                <motion.button 
+                  onClick={handleNavigateHome}
+                  className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors flex items-center"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
+                  <Home className="w-5 h-5 mr-2" />
                   Return Home
-                </motion.a>
-                <motion.a 
-                  href={`/track/${reportNumber}`}
-                  className="px-8 py-3 border-2 border-orange-600 text-orange-600 rounded-xl hover:bg-orange-50 transition-colors"
+                </motion.button>
+                <motion.button
+                  onClick={() => window.location.href = `/track/${reportNumber}`}
+                  className="px-8 py-3 border-2 border-orange-600 text-orange-600 rounded-xl hover:bg-orange-50 transition-colors flex items-center"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
+                  <CheckCircle2 className="w-5 h-5 mr-2" />
                   Track Status
-                </motion.a>
+                </motion.button>
               </div>
             </div>
           </motion.div>
@@ -131,11 +182,11 @@ export const ReportForm = () => {
           <div className="border-b border-gray-100 px-6 py-4">
             <div className="flex items-center justify-between">
               <button
-                onClick={() => window.history.back()}
+                onClick={handleNavigateHome}
                 className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
-                Back
+                Back to Home
               </button>
               <h2 className="text-xl font-bold text-gray-800">Report Missing Person</h2>
               <div className="w-20"></div>
@@ -146,7 +197,9 @@ export const ReportForm = () => {
             <div className="space-y-6">
               <div className="flex justify-center">
                 <motion.div 
-                  className="relative w-32 h-32 rounded-2xl overflow-hidden bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-colors"
+                  className={`relative w-32 h-32 rounded-2xl overflow-hidden ${
+                    previewImage ? '' : 'bg-gray-50 border-2 border-dashed border-gray-300'
+                  } flex items-center justify-center cursor-pointer hover:border-orange-500 transition-colors`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -157,12 +210,48 @@ export const ReportForm = () => {
                     className="absolute inset-0 opacity-0 cursor-pointer"
                   />
                   {previewImage ? (
-                    <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
+                    <>
+                      <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
+                      {isProcessing && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <Loader2 className="w-8 h-8 text-white animate-spin" />
+                        </div>
+                      )}
+                      {!isProcessing && (
+                        <div className={`absolute top-2 right-2 p-1 rounded-full ${
+                          isFaceDetected ? 'bg-green-500' : 'bg-red-500'
+                        }`}>
+                          <CheckCircle2 className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <Camera className="w-10 h-10 text-gray-400" />
                   )}
                 </motion.div>
               </div>
+
+              {previewImage && !isProcessing && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`text-center ${
+                    isFaceDetected ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
+                  {isFaceDetected ? (
+                    <p className="flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Face detected successfully
+                    </p>
+                  ) : (
+                    <p className="flex items-center justify-center">
+                      <AlertCircle className="w-4 h-4 mr-2" />
+                      No face detected. Please upload a clear photo.
+                    </p>
+                  )}
+                </motion.div>
+              )}
 
               <div className="grid md:grid-cols-2 gap-6">
                 <motion.div
@@ -221,13 +310,15 @@ export const ReportForm = () => {
                   transition={{ delay: 0.4 }}
                 >
                   <label className="block text-sm font-medium text-gray-700 mb-1">Complexion</label>
-                  <input
-                    type="text"
+                  <select
                     className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow"
                     value={formData.complexion}
                     onChange={(e) => setFormData({ ...formData, complexion: e.target.value })}
-                    placeholder="e.g., Fair, Medium, Dark"
-                  />
+                  >
+                    <option value="Fair">Fair</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Dark">Dark</option>
+                  </select>
                 </motion.div>
 
                 <motion.div
@@ -307,11 +398,12 @@ export const ReportForm = () => {
               >
                 <motion.button
                   type="button"
-                  onClick={() => window.history.back()}
-                  className="px-6 py-2 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                  onClick={handleNavigateHome}
+                  className="px-6 py-2 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
+                  <Home className="w-4 h-4 mr-2" />
                   Cancel
                 </motion.button>
                 <motion.button
@@ -319,6 +411,7 @@ export const ReportForm = () => {
                   className="px-6 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors flex items-center"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  disabled={!isFaceDetected || isProcessing}
                 >
                   <Save className="w-4 h-4 mr-2" />
                   Submit Report

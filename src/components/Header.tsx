@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Menu, X, ScanFace, Search, LogIn } from 'lucide-react';
+import { Menu, X, ScanFace, Search, LogIn, Languages } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationCenter } from './admin/NotificationCenter';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageSwitch } from './LanguageSwitch';
 
 const navLinkStyles = "hover:text-yellow-400 transition-colors text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-yellow-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center";
 const mobileNavLinkStyles = "px-4 py-2 hover:bg-orange-600 transition-colors text-sm font-medium rounded-lg";
@@ -19,6 +21,7 @@ export const Header = ({
   onAdminLogin: () => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <header className="fixed w-full z-50 bg-gradient-to-r from-orange-800 via-orange-700 to-orange-800 text-white border-b-4 border-yellow-500 shadow-lg">
@@ -31,8 +34,8 @@ export const Header = ({
           >
             <ScanFace className="h-8 w-8 text-yellow-400" />
             <div>
-              <span className="text-xl font-bold">शिमहस्त</span>
-              <span className="text-sm block text-yellow-400">Simhastha Tracker</span>
+              <span className="text-xl font-bold">{t('simhastha')}</span>
+              <span className="text-sm block text-yellow-400">{t('simhastha_tracker')}</span>
             </div>
           </motion.div>
           
@@ -42,10 +45,10 @@ export const Header = ({
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center space-x-6"
             >
-              <a href="#dashboard" className={navLinkStyles}>Dashboard</a>
-              <a href="#surveillance" className={navLinkStyles}>Surveillance</a>
-              <a href="#reports" className={navLinkStyles}>Reports</a>
-              <a href="#stations" className={navLinkStyles}>Stations</a>
+              <a href="#dashboard" className={navLinkStyles}>{t('dashboard')}</a>
+              <a href="#surveillance" className={navLinkStyles}>{t('surveillance')}</a>
+              <a href="#reports" className={navLinkStyles}>{t('reports')}</a>
+              <a href="#stations" className={navLinkStyles}>{t('stations')}</a>
             </motion.div>
 
             <motion.div 
@@ -53,20 +56,21 @@ export const Header = ({
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center space-x-3"
             >
+              <LanguageSwitch />
               <NotificationCenter />
               <button 
                 onClick={onTrack}
                 className={`${buttonBaseStyles} ${secondaryButtonStyles}`}
               >
                 <Search className="w-4 h-4 mr-2" />
-                Track Case
+                {t('track_case')}
               </button>
               <button 
                 onClick={onAdminLogin}
                 className={`${buttonBaseStyles} ${outlineButtonStyles}`}
               >
                 <LogIn className="w-4 h-4 mr-2" />
-                Admin Login
+                {t('admin_login')}
               </button>
             </motion.div>
           </div>
@@ -88,23 +92,24 @@ export const Header = ({
               className="md:hidden border-t border-orange-600 overflow-hidden"
             >
               <div className="flex flex-col space-y-3 py-4">
-                <a href="#dashboard" className={mobileNavLinkStyles}>Dashboard</a>
-                <a href="#surveillance" className={mobileNavLinkStyles}>Surveillance</a>
-                <a href="#reports" className={mobileNavLinkStyles}>Reports</a>
-                <a href="#stations" className={mobileNavLinkStyles}>Stations</a>
+                <a href="#dashboard" className={mobileNavLinkStyles}>{t('dashboard')}</a>
+                <a href="#surveillance" className={mobileNavLinkStyles}>{t('surveillance')}</a>
+                <a href="#reports" className={mobileNavLinkStyles}>{t('reports')}</a>
+                <a href="#stations" className={mobileNavLinkStyles}>{t('stations')}</a>
+                <LanguageSwitch />
                 <button 
                   onClick={onTrack}
                   className={mobileSecondaryButtonStyles}
                 >
                   <Search className="w-4 h-4 mr-2" />
-                  Track Case
+                  {t('track_case')}
                 </button>
                 <button 
                   onClick={onAdminLogin}
                   className={mobileOutlineButtonStyles}
                 >
                   <LogIn className="w-4 h-4 mr-2" />
-                  Admin Login
+                  {t('admin_login')}
                 </button>
               </div>
             </motion.div>

@@ -6,6 +6,7 @@ import { AlertSystem } from './AlertSystem';
 import { ReportList } from './admin/ReportList';
 import { Report } from './admin/types';
 import { NotificationCenter } from './admin/NotificationCenter';
+import { LostItems } from './LostItems';
 
 const mockReports: Report[] = [
   {
@@ -45,11 +46,13 @@ export const AdminDashboard = () => {
   const renderContent = () => {
     switch (selectedTab) {
       case 'reports':
-      case 'items':
         return <ReportList reports={mockReports.filter(report => 
-          report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          report.id.toLowerCase().includes(searchQuery.toLowerCase())
+          report.type === 'person' &&
+          (report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          report.id.toLowerCase().includes(searchQuery.toLowerCase()))
         )} />;
+      case 'items':
+        return <LostItems />;
       default:
         return (
           <div className="space-y-8">
@@ -126,7 +129,7 @@ export const AdminDashboard = () => {
 
   const navItems = [
     { icon: Home, label: 'Dashboard', id: 'dashboard' },
-    { icon: UserSearch, label: 'Missing Reports', id: 'reports' },
+    { icon: UserSearch, label: 'Missing Persons', id: 'reports' },
     { icon: Package, label: 'Lost Items', id: 'items' },
     { icon: Settings, label: 'Settings', id: 'settings' },
   ];

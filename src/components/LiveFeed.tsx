@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { motion } from 'framer-motion';
-import { Camera, User, AlertCircle, Activity, MapPin } from 'lucide-react';
+import { Camera, User, AlertCircle, Activity, MapPin, Smartphone, Wifi } from 'lucide-react';
+import { MacAddressAlert } from './MacAddressAlert';
+import { DeviceDetection } from './DeviceDetection';
 
 interface CameraData {
   id: string;
@@ -21,15 +23,39 @@ const cameras: CameraData[] = [
 export const LiveFeed = () => {
   const [selectedCamera, setSelectedCamera] = useState<CameraData>(cameras[0]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showMacAlert, setShowMacAlert] = useState(false);
   const webcamRef = React.useRef<Webcam>(null);
+  const [detectedDevices, setDetectedDevices] = useState<string[]>([]);
+
+  const videoConstraints = {
+    width: 1280,
+    height: 720,
+    facingMode: "user",
+    mirrored: true
+  };
 
   useEffect(() => {
-    // Simulate AI processing
-    const interval = setInterval(() => {
+    // Simulate AI processing and MAC detection
+    const processingInterval = setInterval(() => {
       setIsProcessing(prev => !prev);
     }, 2000);
 
-    return () => clearInterval(interval);
+    // Simulate new device detection
+    const deviceInterval = setInterval(() => {
+      const mockMac = `${Math.random().toString(16).substr(2, 2)}:${Math.random().toString(16).substr(2, 2)}:${Math.random().toString(16).substr(2, 2)}`;
+      setDetectedDevices(prev => [...prev, mockMac].slice(-5));
+      
+      // Simulate target MAC detection
+      if (Math.random() > 0.8) {
+        setShowMacAlert(true);
+        setTimeout(() => setShowMacAlert(false), 5000);
+      }
+    }, 5000);
+
+    return () => {
+      clearInterval(processingInterval);
+      clearInterval(deviceInterval);
+    };
   }, []);
 
   return (
@@ -38,8 +64,9 @@ export const LiveFeed = () => {
         <Webcam
           ref={webcamRef}
           audio={false}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transform scale-x-[-1]"
           screenshotFormat="image/jpeg"
+          videoConstraints={videoConstraints}
         />
         
         {isProcessing && (
@@ -54,6 +81,8 @@ export const LiveFeed = () => {
             </motion.div>
           </div>
         )}
+
+        <MacAddressAlert show={showMacAlert} onClose={() => setShowMacAlert(false)} />
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black p-4">
           <div className="flex items-center justify-between text-white">
@@ -111,6 +140,8 @@ export const LiveFeed = () => {
         ))}
       </div>
 
+      <DeviceDetection devices={detectedDevices} />
+
       <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
         <div className="flex items-start">
           <AlertCircle className="w-5 h-5 text-orange-500 mr-2 mt-0.5" />
@@ -121,6 +152,7 @@ export const LiveFeed = () => {
               <p>• Face Detection Accuracy: 98.5%</p>
               <p>• Active Cameras: {cameras.filter(c => c.status === 'active').length}/{cameras.length}</p>
               <p>• Total Detections: {cameras.reduce((acc, curr) => acc + curr.detections, 0)}</p>
+              <p>• Devices Tracked: {detectedDevices.length}</p>
             </div>
           </div>
         </div>

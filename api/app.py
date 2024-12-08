@@ -3,6 +3,7 @@ from flask_cors import CORS
 from config import Config
 from database import db
 from routes.person_routes import person_bp
+from routes.face_recognition_routes import face_bp
 
 def create_app():
     app = Flask(__name__)
@@ -14,6 +15,7 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(person_bp, url_prefix='/api/persons')
+    app.register_blueprint(face_bp, url_prefix='/api/face')
     
     # Create database tables
     with app.app_context():

@@ -1,30 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Save, ArrowLeft, CheckCircle2, Camera, AlertCircle, Loader2, Home } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Upload, Save, ArrowLeft, CheckCircle2, Camera, AlertCircle, Loader2 } from 'lucide-react';
 import * as blazeface from '@tensorflow-models/blazeface';
 import * as tf from '@tensorflow/tfjs';
+import { fileToBase64, validateImage } from '../utils/imageUtils';
+import { reportMissingPerson, ReportFormData } from '../services/api';
 
-export const ReportForm = () => {
-  const [formData, setFormData] = useState({
-    name: 'Rishabh Kumar',
-    age: '25',
+interface ReportFormProps {
+  onBack?: () => void;
+}
+
+export const ReportForm: React.FC<ReportFormProps> = ({ onBack }) => {
+  const [formData, setFormData] = useState<ReportFormData>({
+    name: '',
+    age: 0,
     gender: 'male',
-    complexion: 'Medium',
-    lastSeenTime: '2024-03-15T14:30',
-    lastSeenLocation: 'ram_ghat',
-    description: 'Last seen wearing orange kurta and white dhoti',
-    contactNumber: '9876543210',
-    photo: null as File | null
+    contact: '',
+    location: '',
+    description: '',
+    photo: ''
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [reportNumber, setReportNumber] = useState('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [isFaceDetected, setIsFaceDetected] = useState(true);
+  const [isFaceDetected, setIsFaceDetected] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [model, setModel] = useState<any>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const loadModel = async () => {
       await tf.ready();
       const loadedModel = await blazeface.load();
@@ -60,40 +65,46 @@ export const ReportForm = () => {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData({ ...formData, photo: file });
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const imageUrl = reader.result as string;
-        setPreviewImage(imageUrl);
-        const hasFace = await detectFace(imageUrl);
+      try {
+        validateImage(file);
+        const base64Image = await fileToBase64(file);
+        setFormData({ ...formData, photo: base64Image });
+        setPreviewImage(base64Image);
+        const hasFace = await detectFace(base64Image);
         setIsFaceDetected(hasFace);
-      };
-      reader.readAsDataURL(file);
+        setError(null);
+      } catch (err: any) {
+        setError(err.message);
+        setPreviewImage(null);
+        setIsFaceDetected(false);
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFaceDetected) {
-      alert('Please upload a clear photo with a visible face');
+      setError('Please upload a clear photo with a visible face');
       return;
     }
-    const generatedReportNumber = 'MP' + Math.random().toString(36).substr(2, 8).toUpperCase();
-    setReportNumber(generatedReportNumber);
-    setIsSubmitted(true);
-  };
 
-  const handleNavigateHome = () => {
-    window.location.href = '/';
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      const response = await reportMissingPerson(formData);
+      setReportNumber(response.report_number);
+      setIsSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit report. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (isSubmitted) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="min-h-screen bg-gradient-to-b from-orange-50 to-white pt-16 pb-12 px-4"
-      >
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pt-16 pb-12 px-4">
         <div className="max-w-2xl mx-auto">
           <motion.div 
             className="bg-white rounded-2xl shadow-xl overflow-hidden"
@@ -110,23 +121,13 @@ export const ReportForm = () => {
                 <CheckCircle2 className="w-20 h-20 text-green-500 mx-auto mb-6" />
               </motion.div>
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Report Submitted Successfully</h2>
-              <motion.div
-                className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
+              <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
                 <p className="text-lg font-semibold text-green-800">Your Report Number:</p>
                 <p className="text-4xl font-bold text-green-600 my-3">{reportNumber}</p>
                 <p className="text-sm text-green-700">Keep this number for tracking the status</p>
-              </motion.div>
+              </div>
 
-              <motion.div
-                className="bg-orange-50 border border-orange-200 rounded-xl p-6 mb-8"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-6 mb-8">
                 <h3 className="font-semibold text-orange-800 mb-4">Next Steps</h3>
                 <ul className="space-y-3 text-left">
                   <li className="flex items-start">
@@ -135,39 +136,25 @@ export const ReportForm = () => {
                   </li>
                   <li className="flex items-start">
                     <AlertCircle className="w-5 h-5 text-orange-500 mr-2 mt-0.5" />
-                    <span className="text-orange-700">You will receive SMS updates on {formData.contactNumber}</span>
+                    <span className="text-orange-700">You will receive SMS updates on {formData.contact}</span>
                   </li>
                   <li className="flex items-start">
                     <AlertCircle className="w-5 h-5 text-orange-500 mr-2 mt-0.5" />
                     <span className="text-orange-700">You can track the status using your report number</span>
                   </li>
                 </ul>
-              </motion.div>
-
-              <div className="flex gap-4 justify-center">
-                <motion.button 
-                  onClick={handleNavigateHome}
-                  className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors flex items-center"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Home className="w-5 h-5 mr-2" />
-                  Return Home
-                </motion.button>
-                <motion.button
-                  onClick={() => window.location.href = `/track/${reportNumber}`}
-                  className="px-8 py-3 border-2 border-orange-600 text-orange-600 rounded-xl hover:bg-orange-50 transition-colors flex items-center"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <CheckCircle2 className="w-5 h-5 mr-2" />
-                  Track Status
-                </motion.button>
               </div>
+
+              <button
+                onClick={onBack}
+                className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors"
+              >
+                Return to Home
+              </button>
             </div>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
@@ -182,11 +169,11 @@ export const ReportForm = () => {
           <div className="border-b border-gray-100 px-6 py-4">
             <div className="flex items-center justify-between">
               <button
-                onClick={handleNavigateHome}
+                onClick={onBack}
                 className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
-                Back to Home
+                Back
               </button>
               <h2 className="text-xl font-bold text-gray-800">Report Missing Person</h2>
               <div className="w-20"></div>
@@ -231,6 +218,19 @@ export const ReportForm = () => {
                 </motion.div>
               </div>
 
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg"
+                >
+                  <div className="flex items-center">
+                    <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+                    <p className="text-red-700">{error}</p>
+                  </div>
+                </motion.div>
+              )}
+
               {previewImage && !isProcessing && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -254,11 +254,7 @@ export const ReportForm = () => {
               )}
 
               <div className="grid md:grid-cols-2 gap-6">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 }}
-                >
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
                   <input
                     type="text"
@@ -267,13 +263,9 @@ export const ReportForm = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Age *</label>
                   <input
                     type="number"
@@ -282,15 +274,11 @@ export const ReportForm = () => {
                     max="120"
                     className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow"
                     value={formData.age}
-                    onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) })}
                   />
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
                   <select
                     required
@@ -302,51 +290,28 @@ export const ReportForm = () => {
                     <option value="female">Female</option>
                     <option value="other">Other</option>
                   </select>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Complexion</label>
-                  <select
-                    className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow"
-                    value={formData.complexion}
-                    onChange={(e) => setFormData({ ...formData, complexion: e.target.value })}
-                  >
-                    <option value="Fair">Fair</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Dark">Dark</option>
-                  </select>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Seen Time *</label>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number *</label>
                   <input
-                    type="datetime-local"
+                    type="tel"
                     required
+                    pattern="[0-9]{10}"
                     className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow"
-                    value={formData.lastSeenTime}
-                    onChange={(e) => setFormData({ ...formData, lastSeenTime: e.target.value })}
+                    value={formData.contact}
+                    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                    placeholder="10-digit mobile number"
                   />
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Last Seen Location *</label>
                   <select
                     required
                     className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow"
-                    value={formData.lastSeenLocation}
-                    onChange={(e) => setFormData({ ...formData, lastSeenLocation: e.target.value })}
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   >
                     <option value="">Select location</option>
                     <option value="ram_ghat">Ram Ghat</option>
@@ -354,32 +319,9 @@ export const ReportForm = () => {
                     <option value="kalbhairav_temple">Kalbhairav Temple</option>
                     <option value="main_market">Main Market</option>
                   </select>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  className="md:col-span-2"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number *</label>
-                  <input
-                    type="tel"
-                    required
-                    pattern="[0-9]{10}"
-                    className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow"
-                    value={formData.contactNumber}
-                    onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
-                    placeholder="10-digit mobile number"
-                  />
-                </motion.div>
-
-                <motion.div
-                  className="md:col-span-2"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                >
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                   <textarea
                     className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow h-24"
@@ -387,23 +329,17 @@ export const ReportForm = () => {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Additional details about the person..."
                   />
-                </motion.div>
+                </div>
               </div>
 
-              <motion.div
-                className="flex justify-end gap-4 pt-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.9 }}
-              >
+              <div className="flex justify-end gap-4">
                 <motion.button
                   type="button"
-                  onClick={handleNavigateHome}
-                  className="px-6 py-2 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center"
+                  onClick={onBack}
+                  className="px-6 py-2 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Home className="w-4 h-4 mr-2" />
                   Cancel
                 </motion.button>
                 <motion.button
@@ -413,10 +349,19 @@ export const ReportForm = () => {
                   whileTap={{ scale: 0.95 }}
                   disabled={!isFaceDetected || isProcessing}
                 >
-                  <Save className="w-4 h-4 mr-2" />
-                  Submit Report
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Submit Report
+                    </>
+                  )}
                 </motion.button>
-              </motion.div>
+              </div>
             </div>
           </form>
         </motion.div>

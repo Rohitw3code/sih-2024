@@ -45,3 +45,12 @@ export const getAllReports = async (status: string = 'active'): Promise<ApiRespo
     throw new Error(error.response?.data?.error || 'Failed to fetch reports');
   }
 };
+
+export const updateReportStatus = async (reportNumber: string, status: string): Promise<ApiResponse> => {
+  try {
+    const response = await axios.patch(`${API_BASE_URL}/persons/report/${reportNumber}`, { status });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.error || 'Failed to update report status');
+  }
+};

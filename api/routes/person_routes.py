@@ -82,3 +82,36 @@ def get_all_reports():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@person_bp.route('/report/<report_number>', methods=['PATCH'])
+def update_report_status(report_number):
+    try:
+        data = request.get_json()
+        
+        # Validate status
+        if not data or 'status' not in data:
+            return jsonify({'error': 'Status is required'}), 400
+            
+        new_status = data['status'].lower()
+        valid_statuses = ['active', 'found', 'closed']
+        
+        if new_status not in valid_statuses:
+            return jsonify({'error': f'Status must be one of: {", ".join(valid_statuses)}'}), 400
+
+        # Find and update the report
+        person = Person.query.filter_by(report_number=report_number).first()
+        if not person:
+            return jsonify({'error': 'Report not found'}), 404
+
+        # Update status and timestamp
+        person.status = new_status
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Report status updated successfully',
+            'data': person.to_dict()
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500

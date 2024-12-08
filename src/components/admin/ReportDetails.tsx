@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, MapPin, Phone, Clock, User, Camera, ChevronLeft, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { Report } from '../../types/report';
-import { useReportDetails } from '../../hooks/useReportDetails';
+import { updateReportStatus } from '../../services/api';
 
 interface ReportDetailsProps {
   report: Report;
@@ -40,7 +40,9 @@ const mockMatches: FaceMatch[] = [
 export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialReport, onClose }) => {
   const [selectedMatch, setSelectedMatch] = useState<FaceMatch | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const { report, isLoading, error, updateStatus } = useReportDetails(initialReport);
+  const [report, setReport] = useState(initialReport);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleConfirmMatch = (match: FaceMatch) => {
     setSelectedMatch(match);
@@ -48,32 +50,25 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
   };
 
   const handleConfirmFound = async () => {
+    setIsUpdating(true);
+    setError(null);
     try {
-      await updateStatus(report!.report_number, 'found');
+      await updateReportStatus(report.report_number, 'found');
       setShowConfirmDialog(false);
       onClose();
-    } catch (error) {
-      console.error('Failed to update status:', error);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 text-orange-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading report details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !report) {
+  if (error) {
     return (
       <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
         <div className="flex items-center">
           <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
-          <p className="text-red-700">{error || 'Report not found'}</p>
+          <p className="text-red-700">{error}</p>
         </div>
       </div>
     );
@@ -178,72 +173,64 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
             </div>
           </div>
           <div className="p-6">
-            <div className="custom-scrollbar max-h-[600px] pr-2">
-              <AnimatePresence mode="wait">
+            <div className="space-y-4">
+              {mockMatches.map((match) => (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="grid gap-4"
+                  key={match.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white border rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow"
                 >
-                  {mockMatches.map((match) => (
-                    <motion.div
-                      key={match.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-white border rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow"
-                    >
-                      <div className="p-4">
-                        <div className="flex gap-4">
-                          <div className="relative flex-shrink-0">
-                            <img
-                              src={match.image}
-                              alt="Match"
-                              className="w-24 h-24 object-cover rounded-lg shadow"
-                              loading="lazy"
-                            />
-                            <div className="absolute -top-1 -right-1">
-                              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                match.confidence >= 85 ? 'bg-green-100 text-green-800' :
-                                match.confidence >= 75 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                              }`}>
-                                {match.confidence}%
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="space-y-2">
-                              <div className="flex items-center text-gray-700">
-                                <Camera className="w-4 h-4 mr-2 text-gray-500" />
-                                <span className="font-medium">Camera {match.cameraId}</span>
-                              </div>
-                              <div className="flex items-center text-gray-700">
-                                <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                                <span>{match.location}</span>
-                              </div>
-                              <div className="flex items-center text-gray-700">
-                                <Clock className="w-4 h-4 mr-2 text-gray-500" />
-                                <span className="text-sm">
-                                  {new Date(match.timestamp).toLocaleString()}
-                                </span>
-                              </div>
-                            </div>
-                            <motion.button
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => handleConfirmMatch(match)}
-                              className="mt-3 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                              Confirm Match
-                            </motion.button>
+                  <div className="p-4">
+                    <div className="flex gap-4">
+                      <div className="relative flex-shrink-0">
+                        <img
+                          src={match.image}
+                          alt="Match"
+                          className="w-24 h-24 object-cover rounded-lg shadow"
+                          loading="lazy"
+                        />
+                        <div className="absolute -top-1 -right-1">
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            match.confidence >= 85 ? 'bg-green-100 text-green-800' :
+                            match.confidence >= 75 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {match.confidence}%
                           </div>
                         </div>
                       </div>
-                    </motion.div>
-                  ))}
+                      <div className="flex-1 min-w-0">
+                        <div className="space-y-2">
+                          <div className="flex items-center text-gray-700">
+                            <Camera className="w-4 h-4 mr-2 text-gray-500" />
+                            <span className="font-medium">Camera {match.cameraId}</span>
+                          </div>
+                          <div className="flex items-center text-gray-700">
+                            <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                            <span>{match.location}</span>
+                          </div>
+                          <div className="flex items-center text-gray-700">
+                            <Clock className="w-4 h-4 mr-2 text-gray-500" />
+                            <span className="text-sm">
+                              {new Date(match.timestamp).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleConfirmMatch(match)}
+                          className="mt-3 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          Confirm Match
+                        </motion.button>
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
-              </AnimatePresence>
+              ))}
             </div>
           </div>
         </div>
@@ -278,6 +265,7 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setShowConfirmDialog(false)}
                     className="px-6 py-2 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                    disabled={isUpdating}
                   >
                     Cancel
                   </motion.button>
@@ -286,9 +274,19 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
                     whileTap={{ scale: 0.95 }}
                     onClick={handleConfirmFound}
                     className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                    disabled={isUpdating}
                   >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Confirm Found
+                    {isUpdating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        Confirm Found
+                      </>
+                    )}
                   </motion.button>
                 </div>
               </div>

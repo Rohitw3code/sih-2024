@@ -6,7 +6,14 @@ import axios from 'axios';
 
 interface LiveStreamVerificationProps {
   targetImage: string;
-  onMatch: () => void;
+  onMatch: (match: {
+    id: string;
+    image: string;
+    confidence: number;
+    location: string;
+    timestamp: string;
+    cameraId: string;
+  }) => void;
 }
 
 export const LiveStreamVerification: React.FC<LiveStreamVerificationProps> = ({ targetImage, onMatch }) => {
@@ -33,8 +40,16 @@ export const LiveStreamVerification: React.FC<LiveStreamVerificationProps> = ({ 
       const { verified, confidence } = response.data.data;
       setMatchResult({ verified, confidence });
 
-      if (verified && confidence > 85) {
-        onMatch();
+      if (verified && confidence > 52) {
+        const matchData = {
+          id: `match-${Date.now()}`,
+          image: streamImage,
+          confidence,
+          location: 'Live Stream',
+          timestamp: new Date().toISOString(),
+          cameraId: 'LIVE-CAM'
+        };
+        onMatch(matchData);
       }
     } catch (error) {
       console.error('Face verification error:', error);
@@ -55,7 +70,7 @@ export const LiveStreamVerification: React.FC<LiveStreamVerificationProps> = ({ 
           ref={webcamRef}
           audio={false}
           screenshotFormat="image/jpeg"
-          className="w-full h-[300px] object-cover"
+          className="w-full h-[300px] object-cover transform scale-x-[-1]"
           videoConstraints={{
             width: 1280,
             height: 720,

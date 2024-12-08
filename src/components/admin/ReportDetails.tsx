@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, MapPin, Phone, Clock, User, Camera, ChevronLeft, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Clock, User, Camera, ChevronLeft, CheckCircle2, AlertTriangle, Loader2, AlertCircle } from 'lucide-react';
 import { Report } from '../../types/report';
 import { updateReportStatus } from '../../services/api';
 import { LiveStreamVerification } from './LiveStreamVerification';
@@ -10,43 +10,37 @@ interface ReportDetailsProps {
   onClose: () => void;
 }
 
-interface FaceMatch {
+interface StreamMatch {
   id: string;
+  image: string;
   confidence: number;
   location: string;
   timestamp: string;
-  image: string;
   cameraId: string;
 }
 
-const mockMatches: FaceMatch[] = [
-  {
-    id: '1',
-    confidence: 89,
-    location: 'Mahakal Temple',
-    timestamp: '2024-03-14T15:45:00',
-    image: 'https://images.unsplash.com/photo-1542909168-82c3e7fdca5c',
-    cameraId: 'CAM_04'
-  },
-  {
-    id: '2',
-    confidence: 85,
-    location: 'Ram Ghat',
-    timestamp: '2024-03-14T16:30:00',
-    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d',
-    cameraId: 'CAM_12'
-  }
-];
+const CONFIDENCE_THRESHOLD = 52;
+const MAX_VISIBLE_MATCHES = 5;
 
 export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialReport, onClose }) => {
-  const [selectedMatch, setSelectedMatch] = useState<FaceMatch | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<StreamMatch | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [report, setReport] = useState(initialReport);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showLiveStream, setShowLiveStream] = useState(false);
+  const [streamMatches, setStreamMatches] = useState<StreamMatch[]>([]);
 
-  const handleConfirmMatch = (match: FaceMatch) => {
+  const handleNewMatch = useCallback((match: StreamMatch) => {
+    setStreamMatches(prev => {
+      if (match.confidence >= CONFIDENCE_THRESHOLD && !prev.find(m => m.id === match.id)) {
+        return [...prev, match].sort((a, b) => b.confidence - a.confidence);
+      }
+      return prev;
+    });
+  }, []);
+
+  const handleConfirmMatch = (match: StreamMatch) => {
     setSelectedMatch(match);
     setShowConfirmDialog(true);
   };
@@ -65,10 +59,6 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
     }
   };
 
-  const handleLiveMatch = () => {
-    setShowConfirmDialog(true);
-  };
-
   if (error) {
     return (
       <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
@@ -80,12 +70,15 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
     );
   }
 
+  const filteredMatches = streamMatches.filter(match => match.confidence >= CONFIDENCE_THRESHOLD);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="space-y-6"
     >
+      {/* Navigation Bar */}
       <nav className="bg-white shadow-lg rounded-lg p-4">
         <div className="container mx-auto flex justify-between items-center">
           <button
@@ -108,118 +101,124 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
         </div>
       </nav>
 
-      <div className="grid lg:grid-cols-12 gap-6">
-        {/* Person Details Card - 5 columns */}
-        <div className="lg:col-span-5">
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden h-full">
-            <div className="p-4 bg-orange-50 border-b border-orange-100">
-              <h2 className="text-xl font-bold text-gray-800">Person Details</h2>
+      {/* Person Details Card */}
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="p-4 bg-orange-50 border-b border-orange-100">
+          <h2 className="text-xl font-bold text-gray-800">Person Details</h2>
+        </div>
+        <div className="p-6">
+          <div className="flex flex-col md:flex-row gap-8">
+            <div className="md:w-1/4">
+              <div className="relative w-full aspect-square rounded-lg overflow-hidden shadow-lg mb-4">
+                <img
+                  src={report.photo}
+                  alt={report.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 text-center">{report.name}</h3>
             </div>
-            <div className="p-6">
-              <div className="flex flex-col items-center mb-8">
-                <div className="relative w-48 h-48 rounded-lg overflow-hidden shadow-lg mb-4">
-                  <img
-                    src={report.photo}
-                    alt={report.name}
-                    className="w-full h-full object-cover"
-                  />
+            
+            <div className="md:w-3/4 space-y-6">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <User className="w-5 h-5 text-gray-600 mr-3" />
+                  <div>
+                    <p className="text-sm text-gray-500">Age & Gender</p>
+                    <p className="font-medium text-gray-800">{report.age} • {report.gender}</p>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800">{report.name}</h3>
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <Phone className="w-5 h-5 text-gray-600 mr-3" />
+                  <div>
+                    <p className="text-sm text-gray-500">Contact</p>
+                    <p className="font-medium text-gray-800">{report.contact}</p>
+                  </div>
+                </div>
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <MapPin className="w-5 h-5 text-gray-600 mr-3" />
+                  <div>
+                    <p className="text-sm text-gray-500">Last Seen</p>
+                    <p className="font-medium text-gray-800">{report.location}</p>
+                  </div>
+                </div>
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <Clock className="w-5 h-5 text-gray-600 mr-3" />
+                  <div>
+                    <p className="text-sm text-gray-500">Reported At</p>
+                    <p className="font-medium text-gray-800">
+                      {new Date(report.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
               </div>
               
-              <div className="space-y-6">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <User className="w-5 h-5 text-gray-600 mr-3" />
-                    <div>
-                      <p className="text-sm text-gray-500">Age & Gender</p>
-                      <p className="font-medium text-gray-800">{report.age} • {report.gender}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <Phone className="w-5 h-5 text-gray-600 mr-3" />
-                    <div>
-                      <p className="text-sm text-gray-500">Contact</p>
-                      <p className="font-medium text-gray-800">{report.contact}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <MapPin className="w-5 h-5 text-gray-600 mr-3" />
-                    <div>
-                      <p className="text-sm text-gray-500">Last Seen</p>
-                      <p className="font-medium text-gray-800">{report.location}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <Clock className="w-5 h-5 text-gray-600 mr-3" />
-                    <div>
-                      <p className="text-sm text-gray-500">Reported At</p>
-                      <p className="font-medium text-gray-800">
-                        {new Date(report.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-orange-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-2">Description</h4>
-                  <p className="text-gray-700">{report.description}</p>
-                </div>
+              <div className="bg-orange-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-800 mb-2">Description</h4>
+                <p className="text-gray-700">{report.description}</p>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Live Stream and Matches - 7 columns */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Live Stream Section */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="p-4 bg-orange-50 border-b border-orange-100">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800">Live Verification</h2>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowLiveStream(!showLiveStream)}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
-                >
-                  <Camera className="w-5 h-5" />
-                  {showLiveStream ? 'Hide Camera' : 'Start Camera'}
-                </motion.button>
-              </div>
-            </div>
-            <div className="p-6">
-              {showLiveStream ? (
-                <LiveStreamVerification
-                  targetImage={report.photo}
-                  onMatch={handleLiveMatch}
-                />
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Camera className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Click the button above to start live verification</p>
-                </div>
-              )}
+      {/* Live Stream and Matches Section */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Live Stream Section */}
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="p-4 bg-orange-50 border-b border-orange-100">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">Live Verification</h2>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowLiveStream(!showLiveStream)}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
+              >
+                <Camera className="w-5 h-5" />
+                {showLiveStream ? 'Hide Camera' : 'Start Camera'}
+              </motion.button>
             </div>
           </div>
-
-          {/* Potential Matches Section */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="p-4 bg-orange-50 border-b border-orange-100">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800">Potential Matches</h2>
-                <span className="text-sm font-medium text-gray-600">
-                  {mockMatches.length} matches found
-                </span>
+          <div className="p-6">
+            {showLiveStream ? (
+              <LiveStreamVerification
+                targetImage={report.photo}
+                onMatch={handleNewMatch}
+              />
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                <Camera className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Click the button above to start live verification</p>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Potential Matches Section */}
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="p-4 bg-orange-50 border-b border-orange-100">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">Potential Matches</h2>
+              <span className="text-sm font-medium text-gray-600">
+                {filteredMatches.length} matches found
+              </span>
             </div>
-            <div className="p-6">
-              <div className="grid gap-4">
-                {mockMatches.map((match) => (
+          </div>
+          <div className="p-6">
+            {filteredMatches.length === 0 ? (
+              <div className="text-center py-8">
+                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No matches found with confidence above {CONFIDENCE_THRESHOLD}%</p>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+                {filteredMatches.map((match, index) => (
                   <motion.div
                     key={match.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index < MAX_VISIBLE_MATCHES ? index * 0.1 : 0 }}
                     className="bg-white border rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow"
                   >
                     <div className="p-4">
@@ -228,8 +227,8 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
                           <img
                             src={match.image}
                             alt="Match"
-                            className="w-24 h-24 object-cover rounded-lg shadow"
-                            loading="lazy"
+                            className="w-24 h-24 object-cover rounded-lg shadow transform scale-x-[-1]"
+                            loading={index < MAX_VISIBLE_MATCHES ? "eager" : "lazy"}
                           />
                           <div className="absolute -top-1 -right-1">
                             <div className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -273,14 +272,14 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
                   </motion.div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Confirmation Dialog */}
       <AnimatePresence>
-        {showConfirmDialog && (
+        {showConfirmDialog && selectedMatch && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

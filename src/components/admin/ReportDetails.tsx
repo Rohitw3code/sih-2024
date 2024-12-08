@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, MapPin, Phone, Clock, User, Camera, ChevronLeft, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { Report } from './types';
+import { ArrowLeft, MapPin, Phone, Clock, User, Camera, ChevronLeft, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Report } from '../../types/report';
+import { useReportDetails } from '../../hooks/useReportDetails';
 
 interface ReportDetailsProps {
   report: Report;
@@ -33,31 +34,50 @@ const mockMatches: FaceMatch[] = [
     timestamp: '2024-03-14T16:30:00',
     image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d',
     cameraId: 'CAM_12'
-  },
-  {
-    id: '3',
-    confidence: 82,
-    location: 'Main Market',
-    timestamp: '2024-03-14T17:15:00',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
-    cameraId: 'CAM_08'
   }
 ];
 
-export const ReportDetails = ({ report, onClose }: ReportDetailsProps) => {
+export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialReport, onClose }) => {
   const [selectedMatch, setSelectedMatch] = useState<FaceMatch | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const { report, isLoading, error, updateStatus } = useReportDetails(initialReport);
 
   const handleConfirmMatch = (match: FaceMatch) => {
     setSelectedMatch(match);
     setShowConfirmDialog(true);
   };
 
-  const handleConfirmFound = () => {
-    // Here you would typically make an API call to update the status
-    setShowConfirmDialog(false);
-    // Show success message or redirect
+  const handleConfirmFound = async () => {
+    try {
+      await updateStatus(report!.report_number, 'found');
+      setShowConfirmDialog(false);
+      onClose();
+    } catch (error) {
+      console.error('Failed to update status:', error);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-orange-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading report details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !report) {
+    return (
+      <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+        <div className="flex items-center">
+          <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
+          <p className="text-red-700">{error || 'Report not found'}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -82,7 +102,7 @@ export const ReportDetails = ({ report, onClose }: ReportDetailsProps) => {
             }`}>
               {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
             </span>
-            <span className="text-gray-500">Case ID: {report.id}</span>
+            <span className="text-gray-500">Report Number: {report.report_number}</span>
           </div>
         </div>
       </nav>
@@ -97,7 +117,7 @@ export const ReportDetails = ({ report, onClose }: ReportDetailsProps) => {
             <div className="flex flex-col items-center mb-8">
               <div className="relative w-48 h-48 rounded-lg overflow-hidden shadow-lg mb-4">
                 <img
-                  src={report.image}
+                  src={report.photo}
                   alt={report.name}
                   className="w-full h-full object-cover"
                 />
@@ -133,7 +153,7 @@ export const ReportDetails = ({ report, onClose }: ReportDetailsProps) => {
                   <div>
                     <p className="text-sm text-gray-500">Reported At</p>
                     <p className="font-medium text-gray-800">
-                      {new Date(report.reportedAt).toLocaleString()}
+                      {new Date(report.created_at).toLocaleString()}
                     </p>
                   </div>
                 </div>

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Filter, Search, AlertCircle, Loader2 } from 'lucide-react';
-import { ReportDetails } from './ReportDetails';
+import { Report } from '../../types/report';
+import { ReportCard } from './ReportCard';
+import { ReportDetails } from '../admin/ReportDetails';
 import { useReports } from '../../hooks/useReports';
 
-export const ReportList = () => {
-  const [selectedReport, setSelectedReport] = useState(null);
+export const ReportList: React.FC = () => {
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('active');
   const [searchQuery, setSearchQuery] = useState('');
@@ -101,65 +103,11 @@ export const ReportList = () => {
           ) : (
             <div className="grid gap-6">
               {filteredReports.map((report) => (
-                <motion.div
+                <ReportCard
                   key={report.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
-                >
-                  <div className="p-6">
-                    <div className="flex flex-col md:flex-row gap-6">
-                      <div className="relative w-full md:w-32 h-32">
-                        <img
-                          src={report.photo}
-                          alt={report.name}
-                          className="w-full h-full object-cover rounded-lg shadow-md"
-                          loading="lazy"
-                        />
-                        <span className={`absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium ${
-                          report.status === 'active' ? 'bg-red-100 text-red-800' :
-                          report.status === 'found' ? 'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                          <div>
-                            <h3 className="text-xl font-semibold text-gray-800">{report.name}</h3>
-                            <p className="text-gray-600">ID: {report.report_number}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                          <p className="text-gray-600 flex items-center">
-                            Age: {report.age} • {report.gender}
-                          </p>
-                          <p className="text-gray-600 flex items-center">
-                            {report.contact}
-                          </p>
-                          <p className="text-gray-600 flex items-center">
-                            {report.location}
-                          </p>
-                          <p className="text-gray-600 flex items-center">
-                            {new Date(report.created_at).toLocaleString()}
-                          </p>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-2">
-                          <button 
-                            onClick={() => setSelectedReport(report)}
-                            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center transition-colors"
-                          >
-                            View Details
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+                  report={report}
+                  onViewDetails={setSelectedReport}
+                />
               ))}
             </div>
           )}

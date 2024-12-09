@@ -21,7 +21,10 @@ class FaceRecognitionService:
         return Image.open(BytesIO(image_data))
 
     def save_temp_image(self, image: Image.Image, filename: str) -> str:
-        """Save image temporarily for DeepFace processing"""
+        """Save an image temporarily for DeepFace processing."""
+        # Convert RGBA to RGB if necessary
+        if image.mode == "RGBA":
+            image = image.convert("RGB")
         filepath = os.path.join(self.db_path, filename)
         image.save(filepath)
         return filepath
@@ -87,6 +90,9 @@ class FaceRecognitionService:
             
             img1_path = self.save_temp_image(img1, "verify_1_temp.jpg")
             img2_path = self.save_temp_image(img2, "verify_2_temp.jpg")
+
+            print("img1 path : ",img1_path)
+            print("img2 path : ",img2_path)
 
             # Verify faces
             result = DeepFace.verify(

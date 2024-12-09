@@ -25,23 +25,28 @@ def verify_faces():
 @face_bp.route('/stream/check', methods=['POST'])
 def check_stream():
     """Check stream image against target image"""
-    try:
-        data = request.get_json()
-        if not data or 'stream_image' not in data or 'target_image' not in data:
-            return jsonify({'error': 'Both stream and target images are required'}), 400
+    # try:
+    data = request.get_json()
+    if not data or 'stream_image' not in data or 'target_image' not in data:
+        return jsonify({'error': 'Both stream and target images are required'}), 400
+    
+    # print("stream image : ",data['stream_image'])
+    # print("target image : ",data['target_image'])
 
-        result = face_service.verify_face(
-            data['stream_image'],
-            data['target_image']
-        )
 
-        return jsonify({
-            'message': 'Stream check completed',
-            'data': result
-        }), 200
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    result = face_service.verify_face(
+        data['stream_image'],
+        data['target_image']
+    )
+
+    return jsonify({
+        'message': 'Stream check completed',
+        'data': result
+    }), 200
+
+    # except Exception as e:
+    #     return jsonify({'error': str(e)}), 500
 
 @face_bp.route('/find', methods=['POST'])
 def find_faces():

@@ -32,9 +32,7 @@ def check_stream():
     
     # print("stream image : ",data['stream_image'])
     # print("target image : ",data['target_image'])
-
-
-
+    
     result = face_service.verify_face(
         data['stream_image'],
         data['target_image']

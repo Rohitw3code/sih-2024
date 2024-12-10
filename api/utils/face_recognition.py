@@ -12,7 +12,7 @@ class FaceRecognitionService:
         self.db_path = db_path
         os.makedirs(db_path, exist_ok=True)
         self.detector_backend = 'opencv'
-        self.confidence_threshold = 52
+        self.confidence_threshold = 35
 
     def base64_to_image(self, base64_str: str) -> Image.Image:
         """Convert base64 string to PIL Image"""
@@ -53,16 +53,28 @@ class FaceRecognitionService:
             print(f"Face extraction error: {str(e)}")
             return []
 
-    def find_best_face_match(self, faces1: List[Dict], faces2: List[Dict]) -> Tuple[Optional[Dict], float]:
+    def face_to_base64(self, face_array: np.ndarray) -> str:
+        """Convert face array to base64 string"""
+        try:
+            face_image = Image.fromarray(face_array)
+            buffered = BytesIO()
+            face_image.save(buffered, format="JPEG")
+            return f"data:image/jpeg;base64,{base64.b64encode(buffered.getvalue()).decode()}"
+        except Exception as e:
+            print(f"Face conversion error: {str(e)}")
+            return ""
+
+    def find_best_face_match(self, faces1: List[Dict], faces2: List[Dict]) -> Tuple[Optional[Dict], Optional[Dict], float]:
         """
         Find the best matching face between two sets of faces
         Args:
             faces1: List of faces from first image
             faces2: List of faces from second image
         Returns:
-            Tuple of (best matching face, confidence score)
+            Tuple of (best matching source face, best matching target face, confidence score)
         """
-        best_match = None
+        best_source_face = None
+        best_target_face = None
         highest_confidence = 0
 
         for face1 in faces1:
@@ -85,7 +97,8 @@ class FaceRecognitionService:
                     confidence = (1 - result['distance']) * 100
                     if confidence > highest_confidence:
                         highest_confidence = confidence
-                        best_match = face2
+                        best_source_face = face1
+                        best_target_face = face2
 
                 except Exception as e:
                     print(f"Face verification error: {str(e)}")
@@ -99,7 +112,7 @@ class FaceRecognitionService:
             if os.path.exists(temp_path1):
                 os.remove(temp_path1)
 
-        return best_match, highest_confidence
+        return best_source_face, best_target_face, highest_confidence
 
     def verify_face(self, img1_base64: str, img2_base64: str) -> Dict:
         """
@@ -108,7 +121,7 @@ class FaceRecognitionService:
             img1_base64: First image in base64
             img2_base64: Second image in base64
         Returns:
-            Verification result with confidence score and matched face
+            Verification result with confidence score and matched faces
         """
         try:
             # Convert and save both images temporarily
@@ -126,31 +139,31 @@ class FaceRecognitionService:
                 raise Exception("No faces detected in one or both images")
 
             # Find best matching face
-            best_match, confidence = self.find_best_face_match(faces1, faces2)
+            source_face, target_face, confidence = self.find_best_face_match(faces1, faces2)
 
             # Clean up temporary files
             os.remove(img1_path)
             os.remove(img2_path)
 
-            if best_match is None:
+            if source_face is None or target_face is None:
                 return {
                     'verified': False,
                     'confidence': 0,
                     'distance': 1.0,
-                    'matched_face': None
+                    'source_face': None,
+                    'target_face': None
                 }
 
-            # Convert matched face to base64 for response
-            matched_face_img = Image.fromarray(best_match['face'])
-            buffered = BytesIO()
-            matched_face_img.save(buffered, format="JPEG")
-            matched_face_base64 = base64.b64encode(buffered.getvalue()).decode()
+            # Convert matched faces to base64
+            source_face_base64 = self.face_to_base64(source_face['face'])
+            target_face_base64 = self.face_to_base64(target_face['face'])
 
             return {
                 'verified': confidence >= self.confidence_threshold,
                 'confidence': round(confidence, 2),
                 'distance': round(1 - (confidence / 100), 4),
-                'matched_face': f"data:image/jpeg;base64,{matched_face_base64}"
+                'source_face': source_face_base64,
+                'target_face': target_face_base64
             }
 
         except Exception as e:
@@ -196,25 +209,24 @@ class FaceRecognitionService:
             for result in results[0].itertuples():
                 confidence = 1 - float(result.VGG_Face_cosine)
                 if confidence >= threshold:
-                    # Extract face from matched image
+                    # Extract faces from matched image
                     matched_faces = self.extract_faces(result.identity)
                     if matched_faces:
-                        best_match, match_confidence = self.find_best_face_match(
+                        source_face, target_face, match_confidence = self.find_best_face_match(
                             target_faces, matched_faces
                         )
                         
-                        if best_match and match_confidence >= self.confidence_threshold:
-                            # Convert matched face to base64
-                            matched_face_img = Image.fromarray(best_match['face'])
-                            buffered = BytesIO()
-                            matched_face_img.save(buffered, format="JPEG")
-                            matched_face_base64 = base64.b64encode(buffered.getvalue()).decode()
+                        if source_face and target_face and match_confidence >= self.confidence_threshold:
+                            # Convert faces to base64
+                            source_face_base64 = self.face_to_base64(source_face['face'])
+                            target_face_base64 = self.face_to_base64(target_face['face'])
 
                             matches.append({
                                 'image_path': result.identity,
                                 'confidence': round(match_confidence, 2),
                                 'distance': float(result.VGG_Face_cosine),
-                                'matched_face': f"data:image/jpeg;base64,{matched_face_base64}"
+                                'source_face': source_face_base64,
+                                'target_face': target_face_base64
                             })
 
             return sorted(matches, key=lambda x: x['confidence'], reverse=True)

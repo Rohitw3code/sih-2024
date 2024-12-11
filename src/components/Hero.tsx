@@ -3,10 +3,9 @@ import { motion } from 'framer-motion';
 import { Search, UserPlus, Map, ArrowDown, Camera, Users, Clock } from 'lucide-react';
 
 const images = [
-  'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0b/e1/73/b8/simhastha-kumbh.jpg?w=1200&h=-1&s=1', // Ujjain Temple
-  'https://hindi.cdn.zeenews.com/hindi/sites/default/files/2024/03/06/2673501-simhasthaujjainkumbhmelamohanyadav5.jpg', // Indian Festival
-  'https://static.langimg.com/thumb/51976282/navbharat-times-51976282.jpg?imgsize=170415&width=540&resizemode=3', // Temple Architecture
-  'https://images.bhaskarassets.com/web2images/521/2024/10/14/orig1705010392_1728899655.jpg'
+  'https://images.unsplash.com/photo-1604881991720-f91add269bed', // Ujjain Temple
+  'https://images.unsplash.com/photo-1587474260584-136574528ed5', // Indian Festival
+  'https://images.unsplash.com/photo-1598977123118-4e30ba3c4f5b', // Temple Architecture
 ];
 
 export const Hero = ({ 
@@ -28,10 +27,10 @@ export const Hero = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ 
-              delay: index * 10,
+              delay: index * 5,
               duration: 1,
               repeat: Infinity,
-              repeatDelay: (images.length - 1) * 10
+              repeatDelay: (images.length - 1) * 5
             }}
           >
             <img

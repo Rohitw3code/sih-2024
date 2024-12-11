@@ -1,29 +1,35 @@
 import React from 'react';
 import { Header } from './components/Header';
+import { Hero } from './components/Hero';
+import { SearchSection } from './components/SearchSection';
+import { StationMap } from './components/StationMap';
 import { AdminDashboard } from './components/AdminDashboard';
-import { AdminLogin } from './components/admin/AdminLogin';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';  
-import MainDashboard from './components/MainDashboard';
-import { NotificationCenter } from './components/NotificationPage';
+import { ReportForm } from './components/ReportForm';
 import { TrackingPage } from './components/TrackingPage';
+import { AdminLogin } from './components/admin/AdminLogin';
 
 function App() {
   const [isAdmin] = React.useState(false);
-  const [showAdminLogin, setShowAdminLogin] = React.useState(false);
+  const [showReportPage, setShowReportPage] = React.useState(false);
   const [showTrackingPage, setShowTrackingPage] = React.useState(false);
+  const [showAdminLogin, setShowAdminLogin] = React.useState(false);
 
   if (showAdminLogin) {
     return <AdminLogin />;
   }
+
+  if (showReportPage) {
+    return <ReportForm />;
+  }
+
   if (showTrackingPage) {
     return <TrackingPage onBack={() => setShowTrackingPage(false)} />;
   }
 
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header 
-        // onReport={() => setShowReportPage(true)}
+        onReport={() => setShowReportPage(true)}
         onTrack={() => setShowTrackingPage(true)}
         onAdminLogin={() => setShowAdminLogin(true)}
       />
@@ -32,10 +38,12 @@ function App() {
           <AdminDashboard />
         ) : (
           <>
-          <Routes>
-            <Route path="/" element={<MainDashboard />} />
-            <Route path="/notification" element={<NotificationCenter/>}/>
-          </Routes>
+            <Hero 
+              onReport={() => setShowReportPage(true)}
+              onTrack={() => setShowTrackingPage(true)}
+            />
+            <SearchSection />
+            <StationMap />
           </>
         )}
       </main>

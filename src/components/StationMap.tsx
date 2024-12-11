@@ -67,7 +67,17 @@ export const StationMap = () => {
             </div>
 
             <div className="bg-gray-100 rounded-xl p-4 h-[500px] relative overflow-hidden">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d28193.655747700563!2d77.41344436272794!3d23.260116523578656!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x397c428f8fd68fbd%3A0x2155716d572d4f8!2sBhopal%2C%20Madhya%20Pradesh!5e0!3m2!1sen!2sin!4v1733921424321!5m2!1sen!2sin" width="600" height="450" style={{border:0}} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>
+              <img 
+                src="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83"
+                alt="Ujjain Map"
+                className="w-full h-full object-cover rounded-lg"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-6">
+                <div className="text-white">
+                  <h3 className="font-bold text-xl mb-2">Interactive Map</h3>
+                  <p>Click on markers to see detailed information about each help station</p>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>

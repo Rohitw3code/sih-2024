@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, UserPlus, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 interface Notification {
   id: string;
@@ -120,9 +119,9 @@ export const NotificationCenter = () => {
             </div>
 
             <div className="p-4 border-t border-gray-200">
-              <Link to="/notification" className="w-full text-center text-sm text-orange-600 hover:text-orange-700 font-medium">
+              <button className="w-full text-center text-sm text-orange-600 hover:text-orange-700 font-medium">
                 View All Notifications
-              </Link>
+              </button>
             </div>
           </motion.div>
         )}

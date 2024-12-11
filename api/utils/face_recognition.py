@@ -1,4 +1,3 @@
-import cv2
 import os
 import base64
 from io import BytesIO
@@ -29,15 +28,6 @@ class FaceRecognitionService:
         filepath = os.path.join(self.db_path, filename)
         image.save(filepath)
         return filepath
-    
-    def decode_base64_to_image(base64_string):
-        # Decode the base64 string to bytes
-        img_data = base64.b64decode(base64_string)
-        # Convert bytes to NumPy array
-        np_array = np.frombuffer(img_data, np.uint8)
-        # Decode NumPy array to an OpenCV image
-        img = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
-        return img
 
     def find_matches(self, target_image: str, threshold: float = 0.6) -> List[Dict]:
         """
@@ -97,11 +87,7 @@ class FaceRecognitionService:
             # Convert and save both images temporarily
             img1 = self.base64_to_image(img1_base64)
             img2 = self.base64_to_image(img2_base64)
-
-            stream = self.decode_base64_to_image(img1)
             
-
-            print("stream image : ",img1)
             img1_path = self.save_temp_image(img1, "verify_1_temp.jpg")
             img2_path = self.save_temp_image(img2, "verify_2_temp.jpg")
 

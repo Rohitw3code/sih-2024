@@ -72,8 +72,6 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
     );
   }
 
-  console.log("strea match : ",JSON.stringify(streamMatches));
-
   const filteredMatches = streamMatches.filter(match => match.confidence >= CONFIDENCE_THRESHOLD);
 
   return (

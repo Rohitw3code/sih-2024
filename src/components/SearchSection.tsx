@@ -66,26 +66,27 @@ export const SearchSection = () => {
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, index) => (
               <motion.div
-                key={1}
+                key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 * 0.1 }}
+                transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -5 }}
                 className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <div className="flex items-start gap-4">
                   <motion.img 
                     whileHover={{ scale: 1.05 }}
-                    src={`https://cdn.pixabay.com/photo/2024/03/31/05/00/ai-generated-8665996_1280.jpg`}
+                    src={`https://source.unsplash.com/random/200x200?person&${index}`}
                     alt="Missing Person"
                     className="w-24 h-24 object-cover rounded-xl shadow-md"
                   />
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-semibold text-lg text-gray-800">Case #{1 + 1}</h3>
-                        <p className="text-gray-600 text-sm">ID: MP24X7H9K{1}</p>
+                        <h3 className="font-semibold text-lg text-gray-800">Case #{index + 1}</h3>
+                        <p className="text-gray-600 text-sm">ID: MP24X7H9K{index}</p>
                       </div>
                       <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
                         Active
@@ -95,7 +96,7 @@ export const SearchSection = () => {
                     <div className="mt-3 space-y-2">
                       <p className="text-gray-600 flex items-center text-sm">
                         <User className="w-4 h-4 mr-2" />
-                        Age: {20 + 1} • Male
+                        Age: {20 + index} • Male
                       </p>
                       <p className="text-gray-600 flex items-center text-sm">
                         <MapPin className="w-4 h-4 mr-2" />
@@ -118,266 +119,7 @@ export const SearchSection = () => {
                   </div>
                 </div>
               </motion.div>
-              <motion.div
-                key={1}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex items-start gap-4">
-                  <motion.img 
-                    whileHover={{ scale: 1.05 }}
-                    src={`https://preview.redd.it/indians-random-faces-all-ai-generated-v0-bt0lioda95hc1.jpg?width=1080&crop=smart&auto=webp&s=2dd7fff3d11e8a021e78fbeb38ae70d2ca57097b`}
-                    alt="Missing Person"
-                    className="w-24 h-24 object-cover rounded-xl shadow-md"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800">Case #{1 + 1}</h3>
-                        <p className="text-gray-600 text-sm">ID: MP24X7H9K{1}</p>
-                      </div>
-                      <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                        Active
-                      </span>
-                    </div>
-                    
-                    <div className="mt-3 space-y-2">
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <User className="w-4 h-4 mr-2" />
-                        Age: {20 + 1} • Male
-                      </p>
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        Last seen: Ram Ghat
-                      </p>
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <Clock className="w-4 h-4 mr-2" />
-                        2 hours ago
-                      </p>
-                    </div>
-
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="mt-4 w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center text-sm font-medium"
-                    >
-                      <Search className="w-4 h-4 mr-2" />
-                      View Details
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-              <motion.div
-                key={1}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex items-start gap-4">
-                  <motion.img 
-                    whileHover={{ scale: 1.05 }}
-                    src={`https://image.tensorartassets.com/cdn-cgi/image/anim=true,plain=false,w=2048,f=jpeg,q=85/posts/images/710514683408294235/10a90387-e19e-4d97-805a-b155c99e952a.jpg`}
-                    alt="Missing Person"
-                    className="w-24 h-24 object-cover rounded-xl shadow-md"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800">Case #{1 + 1}</h3>
-                        <p className="text-gray-600 text-sm">ID: MP24X7H9K{1}</p>
-                      </div>
-                      <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                        Active
-                      </span>
-                    </div>
-                    
-                    <div className="mt-3 space-y-2">
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <User className="w-4 h-4 mr-2" />
-                        Age: {20 + 1} • Male
-                      </p>
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        Last seen: Ram Ghat
-                      </p>
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <Clock className="w-4 h-4 mr-2" />
-                        2 hours ago
-                      </p>
-                    </div>
-
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="mt-4 w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center text-sm font-medium"
-                    >
-                      <Search className="w-4 h-4 mr-2" />
-                      View Details
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-              <motion.div
-                key={1}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex items-start gap-4">
-                  <motion.img 
-                    whileHover={{ scale: 1.05 }}
-                    src={`https://img.freepik.com/premium-photo/indian-office-man-unfocused-people-background-generative-ai_849906-20193.jpg`}
-                    alt="Missing Person"
-                    className="w-24 h-24 object-cover rounded-xl shadow-md"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800">Case #{1 + 1}</h3>
-                        <p className="text-gray-600 text-sm">ID: MP24X7H9K{1}</p>
-                      </div>
-                      <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                        Active
-                      </span>
-                    </div>
-                    
-                    <div className="mt-3 space-y-2">
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <User className="w-4 h-4 mr-2" />
-                        Age: {20 + 1} • Male
-                      </p>
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        Last seen: Ram Ghat
-                      </p>
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <Clock className="w-4 h-4 mr-2" />
-                        2 hours ago
-                      </p>
-                    </div>
-
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="mt-4 w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center text-sm font-medium"
-                    >
-                      <Search className="w-4 h-4 mr-2" />
-                      View Details
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-              <motion.div
-                key={1}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex items-start gap-4">
-                  <motion.img 
-                    whileHover={{ scale: 1.05 }}
-                    src={`https://img.freepik.com/premium-photo/ai-generated-portrait-candid-authentic-joyful-happy-indian-child-girl-urban-street-background_77186-8633.jpg`}
-                    alt="Missing Person"
-                    className="w-24 h-24 object-cover rounded-xl shadow-md"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800">Case #{1 + 1}</h3>
-                        <p className="text-gray-600 text-sm">ID: MP24X7H9K{1}</p>
-                      </div>
-                      <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                        Active
-                      </span>
-                    </div>
-                    
-                    <div className="mt-3 space-y-2">
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <User className="w-4 h-4 mr-2" />
-                        Age: {20 + 1} • Male
-                      </p>
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        Last seen: Ram Ghat
-                      </p>
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <Clock className="w-4 h-4 mr-2" />
-                        2 hours ago
-                      </p>
-                    </div>
-
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="mt-4 w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center text-sm font-medium"
-                    >
-                      <Search className="w-4 h-4 mr-2" />
-                      View Details
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-              <motion.div
-                key={1}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex items-start gap-4">
-                  <motion.img 
-                    whileHover={{ scale: 1.05 }}
-                    src={`https://img.freepik.com/premium-photo/young-smiling-indian-female-student_776674-1120252.jpg`}
-                    alt="Missing Person"
-                    className="w-24 h-24 object-cover rounded-xl shadow-md"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800">Case #{1 + 1}</h3>
-                        <p className="text-gray-600 text-sm">ID: MP24X7H9K{1}</p>
-                      </div>
-                      <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                        Active
-                      </span>
-                    </div>
-                    
-                    <div className="mt-3 space-y-2">
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <User className="w-4 h-4 mr-2" />
-                        Age: {20 + 1} • Male
-                      </p>
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        Last seen: Ram Ghat
-                      </p>
-                      <p className="text-gray-600 flex items-center text-sm">
-                        <Clock className="w-4 h-4 mr-2" />
-                        2 hours ago
-                      </p>
-                    </div>
-
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="mt-4 w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center text-sm font-medium"
-                    >
-                      <Search className="w-4 h-4 mr-2" />
-                      View Details
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
+            ))}
           </div>
 
           <motion.div

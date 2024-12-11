@@ -34,7 +34,6 @@ def check_stream():
             data['target_image']
         )
 
-
         return jsonify({
             'message': 'Stream check completed',
             'data': result

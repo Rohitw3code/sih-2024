@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, AlertTriangle, Camera, Bell, Home, UserSearch, Package, Settings, LogOut, Menu, X, Search } from 'lucide-react';
+import { Users, AlertTriangle, Camera, Bell, Home, UserSearch, Package, Shield, Settings, LogOut, Menu, X, Search } from 'lucide-react';
 import { LiveFeed } from './LiveFeed';
 import { AlertSystem } from './AlertSystem';
 import { ReportList } from './admin/ReportList';
 import { Report } from './admin/types';
 import { NotificationCenter } from './admin/NotificationCenter';
+import { ViolenceDetection } from './admin/ViolenceDetection';
 
 const mockReports: Report[] = [
   {
@@ -42,14 +43,21 @@ export const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const navItems = [
+    { icon: Home, label: 'Dashboard', id: 'dashboard' },
+    { icon: UserSearch, label: 'Missing Reports', id: 'reports' },
+    { icon: Package, label: 'Lost Items', id: 'items' },
+    { icon: Shield, label: 'Violence Detection', id: 'violence' },
+    { icon: Settings, label: 'Settings', id: 'settings' },
+  ];
+
   const renderContent = () => {
     switch (selectedTab) {
       case 'reports':
       case 'items':
-        return <ReportList reports={mockReports.filter(report => 
-          report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          report.id.toLowerCase().includes(searchQuery.toLowerCase())
-        )} />;
+        return <ReportList />;
+      case 'violence':
+        return <ViolenceDetection />;
       default:
         return (
           <div className="space-y-8">
@@ -119,17 +127,9 @@ export const AdminDashboard = () => {
                 <AlertSystem />
               </motion.div>
             </div>
-          </div>
-        );
+          </div>        );
     }
   };
-
-  const navItems = [
-    { icon: Home, label: 'Dashboard', id: 'dashboard' },
-    { icon: UserSearch, label: 'Missing Reports', id: 'reports' },
-    { icon: Package, label: 'Lost Items', id: 'items' },
-    { icon: Settings, label: 'Settings', id: 'settings' },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -278,5 +278,4 @@ export const AdminDashboard = () => {
         </motion.button>
       </div>
     </div>
-  );
-};
+  );};

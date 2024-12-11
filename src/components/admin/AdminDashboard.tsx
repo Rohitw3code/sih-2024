@@ -95,8 +95,159 @@ export const AdminDashboard = () => {
     }
   };
 
-  // Rest of the component remains the same...
+  const navItems = [
+    { icon: Home, label: 'Dashboard', id: 'dashboard' },
+    { icon: UserSearch, label: 'Missing Reports', id: 'reports' },
+    { icon: Package, label: 'Lost Items', id: 'items' },
+    { icon: Settings, label: 'Settings', id: 'settings' },
+  ];
+
   return (
-    // Existing JSX...
+    <div className="min-h-screen bg-gray-50">
+      {/* Top Navigation */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b shadow-sm z-50 px-4">
+        <div className="flex items-center justify-between h-full">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                setIsSidebarOpen(!isSidebarOpen);
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              }}
+              className="p-2 hover:bg-gray-100 rounded-lg lg:hidden"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 hover:bg-gray-100 rounded-lg hidden lg:block"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-bold text-gray-800">MP Police Dashboard</h1>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="relative hidden md:block">
+              <input
+                type="text"
+                placeholder="Search cases..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-64 px-4 py-2 pl-10 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            </div>
+            <NotificationCenter />
+            <div className="hidden md:flex items-center gap-2">
+              <img
+                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
+                alt="Admin"
+                className="w-8 h-8 rounded-full"
+              />
+              <span className="font-medium">Inspector Sharma</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ x: -300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -300, opacity: 0 }}
+            className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-40 lg:hidden pt-16"
+          >
+            <nav className="p-4">
+              <ul className="space-y-2">
+                {navItems.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      onClick={() => {
+                        setSelectedTab(item.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                        selectedTab === item.id
+                          ? 'bg-orange-100 text-orange-800'
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      <span>{item.label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sidebar */}
+      <motion.div
+        initial={false}
+        animate={{ 
+          width: isSidebarOpen ? 240 : 80,
+          opacity: 1
+        }}
+        className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r shadow-lg transition-all duration-300 z-30 hidden lg:block`}
+      >
+        <nav className="p-4">
+          <ul className="space-y-2">
+            {navItems.map((item) => (
+              <li key={item.id}>
+                <button
+                  onClick={() => setSelectedTab(item.id)}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    selectedTab === item.id
+                      ? 'bg-orange-100 text-orange-800'
+                      : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  {isSidebarOpen && <span>{item.label}</span>}
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <div className="absolute bottom-4 left-4 right-4">
+            <button className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+              <LogOut className="w-5 h-5" />
+              {isSidebarOpen && <span>Logout</span>}
+            </button>
+          </div>
+        </nav>
+      </motion.div>
+
+      {/* Main Content */}
+      <div 
+        className={`transition-all duration-300 ${
+          isSidebarOpen ? 'lg:ml-60' : 'lg:ml-20'
+        } pt-20`}
+      >
+        <div className="p-8">
+          {renderContent()}
+        </div>
+      </div>
+
+      {/* Mobile Search Overlay */}
+      <div className="fixed bottom-4 right-4 lg:hidden">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {}}
+          className="bg-orange-600 text-white p-4 rounded-full shadow-lg"
+        >
+          <Search className="w-6 h-6" />
+        </motion.button>
+      </div>
+    </div>
   );
 };

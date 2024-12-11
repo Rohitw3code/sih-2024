@@ -45,8 +45,6 @@ export const Header = ({
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center space-x-6"
             >
-              <a href="#dashboard" className={navLinkStyles}>{t('dashboard')}</a>
-              <a href="#surveillance" className={navLinkStyles}>{t('surveillance')}</a>
               <a href="#reports" className={navLinkStyles}>{t('reports')}</a>
               <a href="#stations" className={navLinkStyles}>{t('stations')}</a>
             </motion.div>

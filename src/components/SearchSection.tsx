@@ -89,7 +89,7 @@ export const SearchSection = () => {
                         <p className="text-gray-600 text-sm">ID: MP24X7H9K{index}</p>
                       </div>
                       <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                        Active
+                        Acti
                       </span>
                     </div>
                     

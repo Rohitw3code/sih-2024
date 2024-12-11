@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, UserPlus, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 interface Notification {
   id: string;
@@ -24,6 +23,22 @@ export const NotificationCenter = () => {
     },
     {
       id: '2',
+      type: 'new_report',
+      title: 'New Missing Person Report',
+      message: 'Rohit Kumar (25) reported missing from Ram Ghat area',
+      timestamp: '5 minutes ago',
+      read: false,
+    },
+    {
+      id: '3',
+      type: 'new_report',
+      title: 'New Missing Person Report',
+      message:'Priyanshu kush (20) reported missing from Ram Ghat area',
+      timestamp: '2 minutes ago',
+      read: false,
+    },
+    {
+      id: '4',
       type: 'alert',
       title: 'Potential Match Found',
       message: 'AI system detected 89% match for Case #MP24X7H9KL',
@@ -31,7 +46,15 @@ export const NotificationCenter = () => {
       read: false,
     },
     {
-      id: '3',
+      id: '5',
+      type: 'alert',
+      title: 'Potential Match Found',
+      message: 'AI system detected 89% match for Case #MP24X7H9KL',
+      timestamp: '15 minutes ago',
+      read: false,
+    },
+    {
+      id: '6',
       type: 'update',
       title: 'Case Status Updated',
       message: 'Missing person found safe at Mahakal Temple',
@@ -40,7 +63,7 @@ export const NotificationCenter = () => {
     },
   ]);
 
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(true);
 
   const markAsRead = (id: string) => {
     setNotifications(notifications.map(notif =>
@@ -78,12 +101,11 @@ export const NotificationCenter = () => {
       </button>
 
       <AnimatePresence>
-        {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl z-50"
+            className=" mt-8 w-full bg-white rounded-lg shadow-xl z-50"
           >
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
@@ -120,12 +142,8 @@ export const NotificationCenter = () => {
             </div>
 
             <div className="p-4 border-t border-gray-200">
-              <Link to="/notification" className="w-full text-center text-sm text-orange-600 hover:text-orange-700 font-medium">
-                View All Notifications
-              </Link>
             </div>
           </motion.div>
-        )}
       </AnimatePresence>
     </div>
   );

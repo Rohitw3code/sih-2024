@@ -16,6 +16,7 @@ interface MatchedFace {
   cameraId: string;
 }
 
+
 const dummyMatches: MatchedFace[] = [
   {
     id: '1',
@@ -44,6 +45,10 @@ export const TrackingPage: React.FC<TrackingPageProps> = ({ onBack }) => {
   const [timeWindow, setTimeWindow] = useState(24);
   const [showSettings, setShowSettings] = useState(false);
   const { isLoading, error, reportData, fetchReport } = useReport();
+
+  const fetch = () =>{
+
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

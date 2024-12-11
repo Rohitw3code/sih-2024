@@ -17,6 +17,8 @@ interface StreamMatch {
   location: string;
   timestamp: string;
   cameraId: string;
+  sourceFace?: string;
+  targetFace?: string;
 }
 
 const CONFIDENCE_THRESHOLD = 52;
@@ -69,6 +71,8 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
       </div>
     );
   }
+
+  console.log("strea match : ",JSON.stringify(streamMatches));
 
   const filteredMatches = streamMatches.filter(match => match.confidence >= CONFIDENCE_THRESHOLD);
 
@@ -222,52 +226,68 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({ report: initialRep
                     className="bg-white border rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow"
                   >
                     <div className="p-4">
-                      <div className="flex gap-4">
-                        <div className="relative flex-shrink-0">
-                          <img
-                            src={match.image}
-                            alt="Match"
-                            className="w-24 h-24 object-cover rounded-lg shadow transform scale-x-[-1]"
-                            loading={index < MAX_VISIBLE_MATCHES ? "eager" : "lazy"}
-                          />
-                          <div className="absolute -top-1 -right-1">
-                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              match.confidence >= 85 ? 'bg-green-100 text-green-800' :
-                              match.confidence >= 75 ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {match.confidence}%
-                            </div>
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <p className=
+                          "text-sm font-medium text-gray-600 mb-2">Original Image</p>
+                          <div className="relative aspect-square rounded-lg overflow-hidden shadow-md">
+                            <img
+                              src={match.image}
+                              alt="Original Stream"
+                              className="w-full h-full object-cover transform scale-x-[-1]"
+                              loading={index < MAX_VISIBLE_MATCHES ? "eager" : "lazy"}
+                            />
                           </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="space-y-2">
-                            <div className="flex items-center text-gray-700">
-                              <Camera className="w-4 h-4 mr-2 text-gray-500" />
-                              <span className="font-medium">Camera {match.cameraId}</span>
-                            </div>
-                            <div className="flex items-center text-gray-700">
-                              <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                              <span>{match.location}</span>
-                            </div>
-                            <div className="flex items-center text-gray-700">
-                              <Clock className="w-4 h-4 mr-2 text-gray-500" />
-                              <span className="text-sm">
-                                {new Date(match.timestamp).toLocaleString()}
-                              </span>
-                            </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-2">Detected Face</p>
+                          <div className="relative aspect-square rounded-lg overflow-hidden shadow-md">
+                            <img
+                              src={match.image}
+                              alt="Detected Face"
+                              className="w-full h-full object-cover"
+                              loading={index < MAX_VISIBLE_MATCHES ? "eager" : "lazy"}
+                            />
                           </div>
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => handleConfirmMatch(match)}
-                            className="mt-3 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                            Confirm Match
-                          </motion.button>
                         </div>
                       </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            match.confidence >= 85 ? 'bg-green-100 text-green-800' :
+                            match.confidence >= 75 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {match.confidence}% Match
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center text-gray-700">
+                          <Camera className="w-4 h-4 mr-2 text-gray-500" />
+                          <span className="font-medium">Camera {match.cameraId}</span>
+                        </div>
+                        <div className="flex items-center text-gray-700">
+                          <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                          <span>{match.location}</span>
+                        </div>
+                        <div className="flex items-center text-gray-700">
+                          <Clock className="w-4 h-4 mr-2 text-gray-500" />
+                          <span className="text-sm">
+                            {new Date(match.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleConfirmMatch(match)}
+                        className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        Confirm Match
+                      </motion.button>
                     </div>
                   </motion.div>
                 ))}

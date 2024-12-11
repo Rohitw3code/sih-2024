@@ -19,6 +19,18 @@ export interface ApiResponse {
   error?: string;
 }
 
+export interface PotentialMatch {
+  id: number;
+  report_id: number;
+  confidence: number;
+  location: string;
+  camera_id: string;
+  source_face: string;
+  target_face: string;
+  timestamp: string;
+  status: 'pending' | 'confirmed' | 'rejected';
+}
+
 export const reportMissingPerson = async (formData: ReportFormData): Promise<ApiResponse> => {
   try {
     const response = await axios.post(`${API_BASE_URL}/persons/report`, formData);
@@ -52,5 +64,38 @@ export const updateReportStatus = async (reportNumber: string, status: string): 
     return response.data;
   } catch (error: any) {
     throw new Error(error.response?.data?.error || 'Failed to update report status');
+  }
+};
+
+export const getPotentialMatches = async (reportId: number): Promise<PotentialMatch[]> => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/face/matches/${reportId}`);
+    return response.data.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.error || 'Failed to fetch potential matches');
+  }
+};
+
+export const updateMatchStatus = async (matchId: number, status: 'pending' | 'confirmed' | 'rejected'): Promise<PotentialMatch> => {
+  try {
+    const response = await axios.patch(`${API_BASE_URL}/face/matches/${matchId}/status`, { status });
+    return response.data.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.error || 'Failed to update match status');
+  }
+};
+
+export const verifyStreamImage = async (streamImage: string, targetImage: string, reportId: number, location: string, cameraId: string): Promise<ApiResponse> => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/face/stream/check`, {
+      stream_image: streamImage,
+      target_image: targetImage,
+      report_id: reportId,
+      location,
+      camera_id: cameraId
+    });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.error || 'Failed to verify stream image');
   }
 };
